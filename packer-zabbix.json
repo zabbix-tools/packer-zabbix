@@ -1,0 +1,79 @@
+{
+    "variables": {
+        "ver_major": "2",
+        "ver_minor": "4",
+        "ver_patch": "6",
+        "ver_maj_min": "2.4",
+        "version": "2.4.6"
+    },
+    "builders": [
+        {
+            "boot_command": [
+                "<esc>",
+                "<wait>linux vga=792 inst.geoloc=0 ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/anaconda-ks-7.0.cfg<enter>"
+            ],
+            "boot_wait": "5s",
+            "disk_size": 40000,
+            "guest_os_type": "RedHat_64",
+            "headless": true,
+            "http_directory": "./files",
+            "iso_checksum": "d07ab3e615c66a8b2e9a50f4852e6a77",
+            "iso_checksum_type": "md5",
+            "iso_url": "http://mirror.internode.on.net/pub/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1503-01.iso",
+            "ssh_password": "vagrant",
+            "ssh_username": "root",
+            "ssh_wait_timeout": "20m",
+            "type": "virtualbox-iso",
+            "vboxmanage": [
+                ["modifyvm", "{{.Name}}", "--memory", "512"],
+                ["modifyvm", "{{.Name}}", "--cpus", "1"]
+            ],
+            "vm_name": "zabbix-{{user `version`}}_x86_64",
+            "shutdown_command" : "echo 'vagrant' | sudo -S shutdown -P now"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "provisioners/configure-network.sh"
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/configure-environment.sh"
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/install-virtualbox-guest-additions.sh"
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/install-vagrant-user.sh"
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/configure-services.sh"
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/install-zabbix.sh",
+            "environment_vars": [
+                "ZBX_VERSION={{user `version`}}",
+                "ZBX_REPO_VER={{user `ver_maj_min`}}"
+            ]
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/update-packages.sh"
+        },
+        {
+            "type": "shell",
+            "script": "provisioners/clean-empty-space.sh"
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "output": "zabbix-{{user `version`}}_x86_64_virtualbox.box"
+        }
+    ]
+}

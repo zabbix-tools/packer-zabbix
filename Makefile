@@ -1,31 +1,39 @@
-ZBX_VER_MAJ = 2
-ZBX_VER_MIN = 4
-ZBX_VER_PATCH = 6
+all: zabbix-2.4_x86_64_virtualbox.box
 
-ZBX_VERSION = $(ZBX_VER_MAJ).$(ZBX_VER_MIN).$(ZBX_VER_PATCH)
-ZBX_VER_MAJ_MIN = $(ZBX_VER_MAJ).$(ZBX_VER_MIN)
-
-ARCH = $(shell uname -m)
-
-BOXFILE = "zabbix-$(ZBX_VERSION)_$(ARCH)_virtualbox.box"
-
-all: $(BOXFILE)
-
-$(BOXFILE): packer-zabbix.json provisioners/* files/*
+# Zabbix 2.4
+zabbix-2.4_x86_64_virtualbox.box: packer-zabbix.json provisioners/* files/*
 	packer build \
-		-var 'ver_maj=$(ZBX_VER_MAJ)' \
-		-var 'ver_min=$(ZBX_VER_MIN)' \
-		-var 'ver_patch=$(ZBX_VER_PATCH)' \
-		-var 'ver_maj_min=$(ZBX_VER_MAJ_MIN)' \
+		-var 'ver_major=2' \
+		-var 'ver_minor=4' \
+		-var 'ver_patch=6' \
 		packer-zabbix.json
 
-clean:
-	rm -f $(BOXFILE)
-
-install: 
+install-2.4: zabbix-2.4_x86_64_virtualbox.box
 	vagrant box add \
 		--force \
-		--name zabbix-$(ZBX_VER_MAJ).$(ZBX_VER_MIN) \
-		$(BOXFILE)
+		--name zabbix/2.4/centos-7 \
+		zabbix-2.4_x86_64_virtualbox.box
 
-.PHONY: all clean install
+# Zabbix 2.2
+zabbix-2.2_x86_64_virtualbox.box: packer-zabbix.json provisioners/* files/*
+	packer build \
+		-var 'ver_major=2' \
+		-var 'ver_minor=2' \
+		-var 'ver_patch=10' \
+		packer-zabbix.json
+
+install-2.2: zabbix-2.2_x86_64_virtualbox.box
+	vagrant box add \
+		--force \
+		--name zabbix/2.2/centos-7 \
+		zabbix-2.2_x86_64_virtualbox.box
+
+# delete all box files
+clean:
+	rm -f zabbix-*_x86_64_virtualbox.box
+
+# aliases
+2.4: zabbix-2.4_x86_64_virtualbox.box
+2.2: zabbix-2.2_x86_64_virtualbox.box
+
+.PHONY: all clean install-2.2 install-2.4 2.2 2.4

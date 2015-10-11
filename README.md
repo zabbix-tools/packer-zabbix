@@ -14,7 +14,9 @@ installed and preconfigured.
 The first build will download the CentOS 7.0 x86_64 Minimal ISO from the
 configured mirror URL.
 
-* Update the `iso_url` directive in the packer JSON file to your local mirror
+* Update the `iso_url` directive and the `variables` section in `packer-
+  zabbix.json` to match your requirements (ignore the version variables as they
+  are overridden by the `Makefile`)
 * Ensure the `timezone`, `url` and `repo` directives are appropriate for your
   region in `files/anaconda-ks-7.0.cfg`
 * Set the desired Zabbix version using the `ZBX_VER_*` variables in `Makefile`

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# prevent pwd permission issues when using sudo
+cd /tmp
+
 # Install yum repos
 # Don't use the repo release rpm package as it breaks vagrant cachier by not
 # including a version number in the repo ids.
@@ -35,15 +38,18 @@ host    all             all             127.0.0.1/32            md5
 host    all             all             ::1/128                 md5
 HBA
 
-sudo -u postgres psql -c "CREATE ROLE zabbix WITH PASSWORD 'zabbix' LOGIN;"
-sudo -u postgres psql -c "CREATE DATABASE zabbix WITH OWNER zabbix;"
-sudo -u zabbix psql -d zabbix -f /usr/share/doc/zabbix-server-pgsql-${ZBX_VERSION}/create/schema.sql
-sudo -u zabbix psql -d zabbix -f /usr/share/doc/zabbix-server-pgsql-${ZBX_VERSION}/create/images.sql
-sudo -u zabbix psql -d zabbix -f /usr/share/doc/zabbix-server-pgsql-${ZBX_VERSION}/create/data.sql
-systemctl enable postgresql
+systemctl start postgresql
+sleep 3
+
+sudo -u postgres psql -q -c "CREATE ROLE zabbix WITH PASSWORD 'zabbix' LOGIN;"
+sudo -u postgres psql -q -c "CREATE DATABASE zabbix WITH OWNER zabbix;"
+sudo -u zabbix psql -q -d zabbix -f /usr/share/doc/zabbix-server-pgsql-${ZBX_VERSION}/create/schema.sql
+sudo -u zabbix psql -q -d zabbix -f /usr/share/doc/zabbix-server-pgsql-${ZBX_VERSION}/create/images.sql
+sudo -u zabbix psql -q -d zabbix -f /usr/share/doc/zabbix-server-pgsql-${ZBX_VERSION}/create/data.sql
 
 # configure zabbix server
-echo > /etc/zabbix/zabbix_server.conf <<CONF
+cat >> /etc/zabbix/zabbix_server.conf <<CONF
+DBName=zabbix
 DBPassword=zabbix
 CONF
 
@@ -51,27 +57,30 @@ CONF
 cat > /etc/zabbix/web/zabbix.conf.php <<PHP
 <?php
 // Zabbix GUI configuration file.
-global $DB;
+global \$DB;
 
-$DB['TYPE']     = 'POSTGRESQL';
-$DB['SERVER']   = '127.0.0.1';
-$DB['PORT']     = '0';
-$DB['DATABASE'] = 'zabbix';
-$DB['USER']     = 'zabbix';
-$DB['PASSWORD'] = 'zabbix';
+\$DB['TYPE']     = 'POSTGRESQL';
+\$DB['SERVER']   = '127.0.0.1';
+\$DB['PORT']     = '0';
+\$DB['DATABASE'] = 'zabbix';
+\$DB['USER']     = 'zabbix';
+\$DB['PASSWORD'] = 'zabbix';
 
 // Schema name. Used for IBM DB2 and PostgreSQL.
-$DB['SCHEMA'] = '';
+\$DB['SCHEMA'] = '';
 
-$ZBX_SERVER      = 'localhost';
-$ZBX_SERVER_PORT = '10051';
-$ZBX_SERVER_NAME = 'Vagrant Zabbix';
+\$ZBX_SERVER      = 'localhost';
+\$ZBX_SERVER_PORT = '10051';
+\$ZBX_SERVER_NAME = 'Vagrant Zabbix';
 
-$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
+\$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
 ?>
 PHP
 
+sed -i "/;date\.timezone =/a date.timezone = ${ZBX_TIMEZONE}" /etc/php.ini
+
 # enable services
+systemctl enable httpd
+systemctl enable postgresql
 systemctl enable zabbix-agent
 systemctl enable zabbix-server
-systemctl enable httpd

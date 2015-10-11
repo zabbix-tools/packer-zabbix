@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure(2) do |config|
-  config.vm.box = "zabbix-2.2"
+  config.vm.box = "zabbix-2.4"
   config.vm.box_version = "1.0.0"
 
   config.vm.network "forwarded_port", guest: 80, host: 8080, auto_correct: true

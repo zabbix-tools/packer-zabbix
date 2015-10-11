@@ -1,4 +1,5 @@
 *.box
-output-*/*
-packer_cache/*
-.vagrant/
+*/output-*/*
+*/packer_cache/*
+*/.vagrant/
+*/Vagrantfile

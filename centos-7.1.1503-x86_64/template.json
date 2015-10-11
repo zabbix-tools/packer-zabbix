@@ -10,9 +10,9 @@
             "type": "virtualbox-iso",
             "guest_os_type": "RedHat_64",
             "headless": true,
-            "http_directory": "./files",
-            "iso_url": "http://mirror.internode.on.net/pub/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1503-01.iso",
-            "iso_checksum": "d07ab3e615c66a8b2e9a50f4852e6a77",
+            "http_directory": ".",
+            "iso_url": "http://mirror.internode.on.net/pub/centos/7/isos/x86_64/CentOS-7-x86_64-NetInstall-1503.iso",
+            "iso_checksum": "111379a06402e1e445c6aeee9401d031",
             "iso_checksum_type": "md5",
             "ssh_username": "root",
             "ssh_password": "vagrant",
@@ -25,7 +25,7 @@
             ],
             "boot_command": [
                 "<esc>",
-                "<wait>linux vga=792 inst.geoloc=0 ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/anaconda-ks-7.0.cfg<enter>"
+                "<wait>linux vga=792 inst.geoloc=0 ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter>"
             ],
             "boot_wait": "5s",
             "shutdown_command" : "echo 'vagrant' | sudo -S shutdown -P now"
@@ -34,27 +34,27 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "provisioners/configure-network.sh"
+            "script": "../provisioners/configure-network.sh"
         },
         {
             "type": "shell",
-            "script": "provisioners/configure-environment.sh"
+            "script": "../provisioners/configure-environment.sh"
         },
         {
             "type": "shell",
-            "script": "provisioners/install-virtualbox-guest-additions.sh"
+            "script": "../provisioners/install-virtualbox-guest-additions.sh"
         },
         {
             "type": "shell",
-            "script": "provisioners/install-vagrant-user.sh"
+            "script": "../provisioners/install-vagrant-user.sh"
         },
         {
             "type": "shell",
-            "script": "provisioners/configure-services.sh"
+            "script": "../provisioners/configure-services.sh"
         },
         {
             "type": "shell",
-            "script": "provisioners/install-zabbix.sh",
+            "script": "../provisioners/install-zabbix.sh",
             "environment_vars": [
                 "ZBX_VERSION={{user `ver_major`}}.{{user `ver_minor`}}.{{user `ver_patch`}}",
                 "ZBX_REPO_VER={{user `ver_major`}}.{{user `ver_minor`}}",
@@ -63,18 +63,18 @@
         },
         {
             "type": "shell",
-            "script": "provisioners/update-packages.sh"
+            "script": "../provisioners/update-packages.sh"
         },
         {
             "type": "shell",
-            "script": "provisioners/clean-empty-space.sh"
+            "script": "../provisioners/clean-empty-space.sh"
         }
     ],
     "post-processors": [
         {
             "type": "vagrant",
             "output": "zabbix-{{user `ver_major`}}.{{user `ver_minor`}}_x86_64_virtualbox.box",
-            "vagrantfile_template": "vagrantfiles/zabbix-{{user `ver_major`}}.{{user `ver_minor`}}_x86_64.Vagrantfile"
+            "vagrantfile_template": "zabbix-{{user `ver_major`}}.{{user `ver_minor`}}_x86_64.Vagrantfile"
         }
     ]
 }
